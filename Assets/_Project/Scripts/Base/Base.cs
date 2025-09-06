@@ -8,9 +8,9 @@ public class Base : MonoBehaviour
     [SerializeField] private Transform _unitsTransform;
     [SerializeField] private SpawnerResources _spawnerResources;
 
-    private List<Unit> _units = new List<Unit>();
+    [SerializeField] private List<Unit> _units = new List<Unit>();
 
-    private void Awake()
+    private void Start()
     {
         InitializeUnits();
     }

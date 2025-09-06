@@ -187,7 +187,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9746dee515b85104da73fdb53a836c3b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  <IsActive>k__BackingField: 0
+  <IsActive>k__BackingField: 1
 --- !u!114 &3993982525789923730
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -200,7 +200,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: eff360361dac11449837a9843069b7cb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _base: {fileID: 0}
 --- !u!114 &7250917244025521557
 MonoBehaviour:
   m_ObjectHideFlags: 0

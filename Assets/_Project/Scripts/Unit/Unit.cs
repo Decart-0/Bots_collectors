@@ -3,10 +3,10 @@ using UnityEngine;
 
 public class Unit : MonoBehaviour
 {
+    [field:SerializeField] public bool IsActive { get; private set; }
+
     public event Action<Transform> Actived;
 
-    public bool IsActive { get; private set; }
-    
     public Base Base { get; private set; }
 
     private void Awake()
