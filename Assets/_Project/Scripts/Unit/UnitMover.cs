@@ -2,7 +2,7 @@ using System.Collections;
 using UnityEngine;
 
 [RequireComponent(typeof(Unit))]
-public class UnitMotion : MonoBehaviour
+public class UnitMover : MonoBehaviour
 {
     [SerializeField] private float _rotationSpeed = 5f;
     [SerializeField] private float _speed = 5f;
@@ -20,6 +20,7 @@ public class UnitMotion : MonoBehaviour
     private void OnEnable()
     {
         _unit.Actived += SetTarget;
+        StopMovement();
     }
 
     private void OnDisable()
@@ -34,13 +35,17 @@ public class UnitMotion : MonoBehaviour
         StopMovement();
     }
 
-    public void SetTarget(Transform transform)
-    {
+    private void SetTarget(Transform transform)
+    {   
         TargetPoint = transform;
+        StartMovement();
+    }
 
+    private void StartMovement()
+    {
         StopMovement();
 
-        if (TargetPoint != null)
+        if (TargetPoint != null && _movementCoroutine == null)
         {
             _movementCoroutine = StartCoroutine(MovementCoroutine());
         }

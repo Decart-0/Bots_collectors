@@ -1,18 +1,19 @@
 using System;
 using UnityEngine;
 
-[RequireComponent(typeof(UnitMotion))]
+[RequireComponent(typeof(UnitMover))]
 [RequireComponent(typeof(Unit))]
 public class DetectorResource : MonoBehaviour
 {
-    private UnitMotion _unitMotion;
+    private UnitMover _unitMotion;
     private Unit _unit;
 
     public event Action<Resource> ResourceFound;
+    public event Action<Unit> ChangeTarget;
 
     private void Awake()
     {
-        _unitMotion = GetComponent<UnitMotion>();
+        _unitMotion = GetComponent<UnitMover>();
         _unit = GetComponent<Unit>();
     }
 
@@ -21,9 +22,9 @@ public class DetectorResource : MonoBehaviour
         if (collider.TryGetComponent(out Resource resource))
         {
             if (resource.transform == _unitMotion.TargetPoint)
-            {
+            {             
+                ChangeTarget?.Invoke(_unit);
                 ResourceFound?.Invoke(resource);
-                _unitMotion.SetTarget(_unit.Base.transform);
             }
         }
     }

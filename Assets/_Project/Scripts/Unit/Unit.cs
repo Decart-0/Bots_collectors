@@ -7,8 +7,6 @@ public class Unit : MonoBehaviour
 
     public event Action<Transform> Actived;
 
-    public Base Base { get; private set; }
-
     private void Awake()
     {
         ToggleActive(false);
@@ -23,10 +21,6 @@ public class Unit : MonoBehaviour
     public void ToggleActive(bool status)
     {
         IsActive = status;
-    }
-
-    public void GetBase(Base baseResource)
-    {
-        Base = baseResource;
+        print(IsActive);
     }
 }

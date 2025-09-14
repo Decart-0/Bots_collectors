@@ -1352,6 +1352,7 @@ MonoBehaviour:
   _nearestResourceScanner: {fileID: 1916008082}
   _unitsTransform: {fileID: 1848848865}
   _spawnerResources: {fileID: 1197727195}
+  _units: []
 --- !u!54 &1916008080
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -1423,8 +1424,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _prefab: {fileID: 8706759311199485911, guid: 071c203df3c102443bbf0b4ec24311ae, type: 3}
   _parentObject: {fileID: 1848848865}
-  _base: {fileID: 1916008079}
-  _quantityMax: 4
+  _quantityMax: 3
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

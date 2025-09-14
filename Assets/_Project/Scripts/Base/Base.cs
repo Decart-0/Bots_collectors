@@ -1,3 +1,4 @@
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -7,22 +8,12 @@ public class Base : MonoBehaviour
     [SerializeField] private FinderResource _nearestResourceScanner;
     [SerializeField] private Transform _unitsTransform;
     [SerializeField] private SpawnerResources _spawnerResources;
-
     [SerializeField] private List<Unit> _units = new List<Unit>();
+    [SerializeField] private float _scanInterval = 0.5f;
 
     private void Start()
     {
         InitializeUnits();
-    }
-
-    private void Update()
-    {
-        Unit freeUnit = GetUnit();
-
-        if (freeUnit != null)
-        {
-            AppointResource(freeUnit);
-        }
     }
 
     private void OnTriggerEnter(Collider collider)
@@ -34,9 +25,20 @@ public class Base : MonoBehaviour
         }
     }
 
+    private void OnDestroy()
+    {
+        foreach (Unit unit in _units)
+        {
+            if (unit.TryGetComponent(out DetectorResource detectorResource))
+            {
+                detectorResource.ChangeTarget -= OnUnitTargetChange;
+            }
+        }
+    }
+
     private Unit GetUnit()
     {
-        foreach(Unit unit in _units) 
+        foreach (Unit unit in _units)
         {
             if (unit.IsActive == false)
             {
@@ -51,19 +53,50 @@ public class Base : MonoBehaviour
     {
         Resource resource = _nearestResourceScanner.FindNearestResource();
 
-        if (unit != null && resource != null)
+        if (resource != null)
         {
-            unit.Active(resource.transform);
+            ChangeUnitTarget(resource.transform, unit);
         }
+    }
+
+    private void OnUnitTargetChange(Unit unit)
+    {
+        ChangeUnitTarget(transform, unit);
+    }
+
+    private void ChangeUnitTarget(Transform target, Unit unit)
+    {
+        unit.Active(target);
     }
 
     private void InitializeUnits()
     {
         foreach (Transform transform in _unitsTransform)
         {
-            if (transform.TryGetComponent(out Unit unit)) 
+            if (transform.TryGetComponent(out Unit unit))
             {
-                _units.Add(unit);
+                if (unit.TryGetComponent(out DetectorResource detectorResource))
+                {
+                    _units.Add(unit);
+                    detectorResource.ChangeTarget += OnUnitTargetChange;
+                }
+            }
+        }
+
+        StartCoroutine(CheckForResourcesRoutine());
+    }
+
+    private IEnumerator CheckForResourcesRoutine()
+    {
+        while (true)
+        {
+            yield return new WaitForSeconds(_scanInterval);
+
+            Unit freeUnit = GetUnit();
+
+            if (freeUnit != null)
+            {
+                AppointResource(freeUnit);
             }
         }
     }

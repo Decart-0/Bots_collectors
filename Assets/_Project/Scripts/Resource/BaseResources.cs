@@ -8,9 +8,9 @@ public class BaseResources : MonoBehaviour
     [SerializeField] private List<Resource> _resources = new List<Resource>();
     [SerializeField] private List<Resource> _resourcesBusy = new List<Resource>();
 
-    public event Action ChangedListResources;
-
     public float NumberResources => _resources.Count + _resourcesBusy.Count;
+
+    public event Action ChangedListResources;
 
     private void OnEnable()
     {
