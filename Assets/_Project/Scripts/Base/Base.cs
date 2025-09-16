@@ -4,16 +4,15 @@ using UnityEngine;
 
 public class Base : MonoBehaviour
 {
+    [SerializeField] private List<Unit> _units = new List<Unit>();
     [SerializeField] private CounterResources _counterResources;
     [SerializeField] private FinderResource _nearestResourceScanner;
-    [SerializeField] private Transform _unitsTransform;
     [SerializeField] private SpawnerResources _spawnerResources;
-    [SerializeField] private List<Unit> _units = new List<Unit>();
     [SerializeField] private float _scanInterval = 0.5f;
 
     private void Start()
     {
-        InitializeUnits();
+        StartCoroutine(SendingBotsRoutine());
     }
 
     private void OnTriggerEnter(Collider collider)
@@ -33,6 +32,16 @@ public class Base : MonoBehaviour
             {
                 detectorResource.ChangeTarget -= OnUnitTargetChange;
             }
+        }
+    }
+
+    public void GetUnit(Unit unit) 
+    {
+        _units.Add(unit);
+
+        if (unit.TryGetComponent(out DetectorResource detectorResource))
+        {
+            detectorResource.ChangeTarget += OnUnitTargetChange;
         }
     }
 
@@ -69,28 +78,13 @@ public class Base : MonoBehaviour
         unit.Active(target);
     }
 
-    private void InitializeUnits()
+    private IEnumerator SendingBotsRoutine()
     {
-        foreach (Transform transform in _unitsTransform)
-        {
-            if (transform.TryGetComponent(out Unit unit))
-            {
-                if (unit.TryGetComponent(out DetectorResource detectorResource))
-                {
-                    _units.Add(unit);
-                    detectorResource.ChangeTarget += OnUnitTargetChange;
-                }
-            }
-        }
+        WaitForSeconds waitForSeconds = new WaitForSeconds(_scanInterval);
 
-        StartCoroutine(CheckForResourcesRoutine());
-    }
-
-    private IEnumerator CheckForResourcesRoutine()
-    {
         while (true)
         {
-            yield return new WaitForSeconds(_scanInterval);
+            yield return waitForSeconds;
 
             Unit freeUnit = GetUnit();
 

@@ -22,9 +22,9 @@ public class BaseResources : MonoBehaviour
         _scanner.WorkedScanner -= UpdateResources;
     }
 
-    public List<Resource> GetResources()
+    public IReadOnlyList<Resource> GetResources()
     {
-        return _resources;
+        return _resources.AsReadOnly();
     }
 
     public void BorrowResource(Resource resource)
@@ -56,14 +56,11 @@ public class BaseResources : MonoBehaviour
             }
         }
 
-        foreach (Resource component in newResources)
+        foreach (Resource resource in newResources)
         {
-            if (component.TryGetComponent(out Resource resource))
+            if (_resources.Contains(resource) == false && _resourcesBusy.Contains(resource) == false)
             {
-                if (_resources.Contains(resource) == false && _resourcesBusy.Contains(resource) == false)
-                {
-                    _resources.Add(resource);
-                }
+                _resources.Add(resource);
             }
         }
     }

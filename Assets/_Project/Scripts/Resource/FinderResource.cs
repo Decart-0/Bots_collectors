@@ -7,7 +7,7 @@ public class FinderResource : MonoBehaviour
 
     public Resource FindNearestResource()
     {
-        List<Resource> resources = _baseResources.GetResources();
+        IReadOnlyList<Resource> resources = _baseResources.GetResources();
         Resource closestResource = null;
         float minSqrDistance = float.MaxValue;
 

@@ -59,7 +59,10 @@ public class SpawnerResources : MonoBehaviour
             StopCoroutine(_coroutine);
         }
 
-        _pool?.Dispose();
+        if (_pool != null)
+        {
+            _pool?.Dispose();
+        }
     }
 
     public void ReleaseResource(Resource resource)
@@ -111,7 +114,10 @@ public class SpawnerResources : MonoBehaviour
 
     private void OnDestroyResource(Resource resource)
     {
-        Destroy(resource.gameObject);
+        if (resource != null)
+        {
+            Destroy(resource.gameObject);
+        }
     }
 
     private bool IsEmptyPosition(Vector3 position)

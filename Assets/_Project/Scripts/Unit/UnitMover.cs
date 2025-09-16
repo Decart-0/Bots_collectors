@@ -17,32 +17,14 @@ public class UnitMover : MonoBehaviour
         _unit = GetComponent<Unit>();
     }
 
-    private void OnEnable()
-    {
-        _unit.Actived += SetTarget;
-        StopMovement();
-    }
-
-    private void OnDisable()
-    {
-        _unit.Actived -= SetTarget;
-        StopMovement();
-    }
-
     private void OnDestroy()
     {
-        _unit.Actived -= SetTarget;
         StopMovement();
     }
 
-    private void SetTarget(Transform transform)
-    {   
-        TargetPoint = transform;
-        StartMovement();
-    }
-
-    private void StartMovement()
+    public void StartMovement(Transform transform)
     {
+        TargetPoint = transform;
         StopMovement();
 
         if (TargetPoint != null && _movementCoroutine == null)
@@ -62,27 +44,61 @@ public class UnitMover : MonoBehaviour
 
     private Vector3 GetTargetPosition()
     { 
-        return new Vector3( TargetPoint.position.x, transform.position.y, TargetPoint.position.z);
+        return new Vector3(TargetPoint.position.x, transform.position.y, TargetPoint.position.z);
     }
 
-    private void Move(Vector3 targetPosition)
+    private IEnumerator SmoothLookAt()
     {
-        transform.position = Vector3.MoveTowards(
-            transform.position, 
-            targetPosition, 
-            _speed * Time.deltaTime);      
-    }   
+        Vector3 targetPosition = GetTargetPosition();
 
-    private void Rotate(Vector3 targetPosition)
-    {
+        if (targetPosition == null) yield break;
+
         Vector3 direction = (targetPosition - transform.position).normalized;
 
         if (direction.sqrMagnitude > 0)
         {
-            transform.rotation = Quaternion.Slerp(
-                transform.rotation,
-                Quaternion.LookRotation(direction),
-                _rotationSpeed * Time.deltaTime);
+            Quaternion targetRotation = Quaternion.LookRotation(direction);
+            float angleDifference = Quaternion.Angle(transform.rotation, targetRotation);
+
+            while (angleDifference > 0)
+            {
+                if (targetPosition == null) yield break;
+
+                targetPosition = new Vector3(targetPosition.x, transform.position.y, targetPosition.z);
+                direction = (targetPosition - transform.position).normalized;
+
+                if (direction.sqrMagnitude > 0)
+                {
+                    targetRotation = Quaternion.LookRotation(direction);
+
+                    transform.rotation = Quaternion.Slerp(
+                        transform.rotation,
+                        targetRotation,
+                        _rotationSpeed * Time.deltaTime);
+
+                    angleDifference = Quaternion.Angle(transform.rotation, targetRotation);
+                }
+
+                yield return null;
+            }
+        }
+    }
+
+    private IEnumerator MoveToPosition()
+    {
+        Vector3 targetPosition = GetTargetPosition();
+        float distance = Vector3.Distance(transform.position, targetPosition);
+
+        while (distance > 0 && _unit.IsActive)
+        {
+            transform.position = Vector3.MoveTowards(
+                transform.position,
+                targetPosition,
+                _speed * Time.deltaTime);
+
+            distance = Vector3.Distance(transform.position, targetPosition);
+
+            yield return null;
         }
     }
 
@@ -90,10 +106,8 @@ public class UnitMover : MonoBehaviour
     {
         while(_unit.IsActive) 
         {
-            Vector3 targetPosition = GetTargetPosition();
-
-            Move(targetPosition);
-            Rotate(targetPosition);
+            yield return SmoothLookAt();
+            yield return MoveToPosition();
 
             yield return null;
         }

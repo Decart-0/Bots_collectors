@@ -1348,11 +1348,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0e43eb7ea48b3c4479be7f9cae563f30, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _units: []
   _counterResources: {fileID: 1743379027}
   _nearestResourceScanner: {fileID: 1916008082}
   _unitsTransform: {fileID: 1848848865}
   _spawnerResources: {fileID: 1197727195}
-  _units: []
+  _scanInterval: 0.5
 --- !u!54 &1916008080
 Rigidbody:
   m_ObjectHideFlags: 0
