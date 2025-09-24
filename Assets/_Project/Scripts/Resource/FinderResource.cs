@@ -3,11 +3,16 @@ using UnityEngine;
 
 public class FinderResource : MonoBehaviour
 {
-    [SerializeField] private BaseResources _baseResources;
+    private ListResources _listResources;
+
+    private void Awake()
+    {
+        _listResources = FindAnyObjectByType<ListResources>();
+    }
 
     public Resource FindNearestResource()
     {
-        IReadOnlyList<Resource> resources = _baseResources.GetResources();
+        IReadOnlyList<Resource> resources = _listResources.GetResources();
         Resource closestResource = null;
         float minSqrDistance = float.MaxValue;
 
@@ -22,7 +27,7 @@ public class FinderResource : MonoBehaviour
             }
         }
 
-        _baseResources.BorrowResource(closestResource);
+        _listResources.BorrowResource(closestResource);
 
         return closestResource;
     }

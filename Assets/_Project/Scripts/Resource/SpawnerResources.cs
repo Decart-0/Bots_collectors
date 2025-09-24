@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.Pool;
 using Random = UnityEngine.Random;
 
+[RequireComponent(typeof(BaseResources))]
 public class SpawnerResources : MonoBehaviour
 {
     private const float HalfDivider = 2f;
@@ -10,12 +11,12 @@ public class SpawnerResources : MonoBehaviour
     [SerializeField] private Map _map;
     [SerializeField] private Resource _resource;
     [SerializeField] private Transform _parentObject;
-    [SerializeField] private BaseResources _baseResources;
 
     [SerializeField] private LayerMask _layerMask;
     [SerializeField] private int _quantityMax = 10;
     [SerializeField] private float _spawnInterval = 1f;
 
+    private BaseResources _baseResources;
     private WaitForSeconds _waitForSeconds;
     private Coroutine _coroutine;
     private ObjectPool<Resource> _pool;
@@ -24,6 +25,7 @@ public class SpawnerResources : MonoBehaviour
 
     private void Awake()
     {
+        _baseResources = GetComponent<BaseResources>();
         _waitForSeconds = new WaitForSeconds(_spawnInterval);
 
         _pool = new ObjectPool<Resource>(
@@ -44,12 +46,12 @@ public class SpawnerResources : MonoBehaviour
 
     private void OnEnable()
     {
-        _baseResources.ChangedListResources += Active;
+        _baseResources.SyncAllResources += Active;
     }
 
     private void OnDisable()
     {
-        _baseResources.ChangedListResources -= Active;
+        _baseResources.SyncAllResources -= Active;
     }
 
     private void OnDestroy()
@@ -67,11 +69,7 @@ public class SpawnerResources : MonoBehaviour
 
     public void ReleaseResource(Resource resource)
     {
-        if (resource != null)
-        {
-            _baseResources.DeleteResource(resource);
-            _pool.Release(resource);
-        }
+        _pool.Release(resource);
     }
 
     private void Active()
@@ -100,6 +98,7 @@ public class SpawnerResources : MonoBehaviour
             resource.transform.position = randomPosition;
             resource.transform.SetParent(_parentObject);
             resource.gameObject.SetActive(true);
+            _baseResources.AddResource(resource);
         }
         else
         {
@@ -140,6 +139,7 @@ public class SpawnerResources : MonoBehaviour
         while (_baseResources.NumberResources < _quantityMax)
         {
             Resource resource = _pool.Get();
+
             yield return _waitForSeconds;
         }
 

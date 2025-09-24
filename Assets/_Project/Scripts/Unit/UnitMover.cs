@@ -9,8 +9,7 @@ public class UnitMover : MonoBehaviour
 
     private Unit _unit;
     private Coroutine _movementCoroutine;
-
-    public Transform TargetPoint { get; private set; }
+    private Transform _targetPoint;
 
     private void Awake()
     {
@@ -24,10 +23,10 @@ public class UnitMover : MonoBehaviour
 
     public void StartMovement(Transform transform)
     {
-        TargetPoint = transform;
+        _targetPoint = transform;
         StopMovement();
 
-        if (TargetPoint != null && _movementCoroutine == null)
+        if (_targetPoint != null && _movementCoroutine == null)
         {
             _movementCoroutine = StartCoroutine(MovementCoroutine());
         }
@@ -44,7 +43,7 @@ public class UnitMover : MonoBehaviour
 
     private Vector3 GetTargetPosition()
     { 
-        return new Vector3(TargetPoint.position.x, transform.position.y, TargetPoint.position.z);
+        return new Vector3(_targetPoint.position.x, transform.position.y, _targetPoint.position.z);
     }
 
     private IEnumerator SmoothLookAt()

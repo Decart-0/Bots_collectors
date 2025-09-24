@@ -4,64 +4,33 @@ using UnityEngine;
 
 public class BaseResources : MonoBehaviour
 {
-    [SerializeField] private Scanner _scanner;
     [SerializeField] private List<Resource> _resources = new List<Resource>();
     [SerializeField] private List<Resource> _resourcesBusy = new List<Resource>();
 
-    public float NumberResources => _resources.Count + _resourcesBusy.Count;
+    public float NumberResources => _resources.Count;
 
-    public event Action ChangedListResources;
+    public event Action SyncAllResources;
 
-    private void OnEnable()
+    public IReadOnlyList<Resource> GetBusyResources()
     {
-        _scanner.WorkedScanner += UpdateResources;
+        return _resourcesBusy.AsReadOnly();
     }
 
-    private void OnDisable()
+    public void AddResource(Resource resource)
     {
-        _scanner.WorkedScanner -= UpdateResources;
-    }
-
-    public IReadOnlyList<Resource> GetResources()
-    {
-        return _resources.AsReadOnly();
+        _resources.Add(resource);
     }
 
     public void BorrowResource(Resource resource)
     {
-        if (resource == null) return;
-
-        _resources.Remove(resource);
         _resourcesBusy.Add(resource);
+        SyncAllResources?.Invoke();
     }
 
     public void DeleteResource(Resource resource)
     {
+        _resources.Remove(resource);
         _resourcesBusy.Remove(resource);
-        ChangedListResources?.Invoke();
-    }
-
-    private void UpdateResources(List<Resource> newResources)
-    {
-        for (int i = _resources.Count - 1; i >= 0; i--)
-        {
-            Resource currentResource = _resources[i];
-
-            if (newResources.Contains(currentResource) == false)
-            {
-                if (_resourcesBusy.Contains(currentResource) == false)
-                {
-                    _resources.RemoveAt(i);
-                }
-            }
-        }
-
-        foreach (Resource resource in newResources)
-        {
-            if (_resources.Contains(resource) == false && _resourcesBusy.Contains(resource) == false)
-            {
-                _resources.Add(resource);
-            }
-        }
+        SyncAllResources?.Invoke();
     }
 }
