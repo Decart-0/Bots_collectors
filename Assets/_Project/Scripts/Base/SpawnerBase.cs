@@ -2,17 +2,21 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+[RequireComponent(typeof(BaseResources))]
 public class SpawnerBase : MonoBehaviour
 {
     [SerializeField] private Base _prefabBase;
     [SerializeField] private List<Base> _bases = new List<Base>();
 
+    private BaseResources _baseResources;
+
     private void Awake()
     {
-        for(int i = 0; i < _bases.Count; i++)
+        _baseResources = GetComponent<BaseResources>();
+
+        foreach (Base baseUnit in _bases)
         {
-            _bases[i].AssignId(i);
-            _bases[i].SpawnNewBase += StartSpawn;
+            baseUnit.SpawnNewBase += StartSpawn;
         }
     }
 
@@ -34,13 +38,14 @@ public class SpawnerBase : MonoBehaviour
 
     private IEnumerator SpawnBase(Vector3 position, Unit unit)
     {
+        _prefabBase.gameObject.SetActive(false);
         Base baseUnit = Instantiate(_prefabBase, position, Quaternion.identity);
+        baseUnit.Initialize(_baseResources);
         baseUnit.SpawnNewBase += StartSpawn;
+        baseUnit.gameObject.SetActive(true);
+        baseUnit.SetUnit(unit);
         _bases.Add(baseUnit);
-        baseUnit.AssignId(_bases.Count - 1);
 
         yield return new WaitUntil(() => unit.IsActive == false);
-        
-        baseUnit.SetUnit(unit);
     }
 }

@@ -83,7 +83,8 @@ public class InstallerFlag : MonoBehaviour
 
     private void HandleFlagOperation(Ray ray)
     {
-        if (_selectedBase == null) return;
+        if (_selectedBase == null) 
+            return;
 
         if (Physics.Raycast(ray, out var hit, Mathf.Infinity))
         {
@@ -110,13 +111,12 @@ public class InstallerFlag : MonoBehaviour
 
     private void SpawnFlag(Vector3 position)
     {
-        if (_selectedBase == null) return;
+        if (_selectedBase == null) 
+            return;
 
         Flag flag = _flagPool.Get();
         flag.transform.position = position;
-
-        flag.ReturnedToPool += ReturnFlagToPool;
-
+        flag.ReturnedToPool += ReturnFlag;
         _selectedBase.AssignFlag(flag);
     }
 
@@ -125,9 +125,9 @@ public class InstallerFlag : MonoBehaviour
         _selectedBase.RearrangeFlag(newPosition);
     }
 
-    private void ReturnFlagToPool(Flag flag)
+    private void ReturnFlag(Flag flag)
     {
-        flag.ReturnedToPool -= ReturnFlagToPool;
+        flag.ReturnedToPool -= ReturnFlag;
         _flagPool.Release(flag);
     }
 

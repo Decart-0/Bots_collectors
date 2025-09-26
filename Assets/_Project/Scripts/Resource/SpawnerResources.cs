@@ -47,11 +47,13 @@ public class SpawnerResources : MonoBehaviour
     private void OnEnable()
     {
         _baseResources.SyncAllResources += Active;
+        _baseResources.CollectedResources += ReleaseResource;
     }
 
     private void OnDisable()
     {
         _baseResources.SyncAllResources -= Active;
+        _baseResources.CollectedResources -= ReleaseResource;
     }
 
     private void OnDestroy()
@@ -67,7 +69,7 @@ public class SpawnerResources : MonoBehaviour
         }
     }
 
-    public void ReleaseResource(Resource resource)
+    private void ReleaseResource(Resource resource)
     {
         _pool.Release(resource);
     }

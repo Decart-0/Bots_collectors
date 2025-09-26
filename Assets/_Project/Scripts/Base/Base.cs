@@ -1,25 +1,28 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
+[RequireComponent(typeof(Scanner))]
 [RequireComponent(typeof(CounterResources))]
 [RequireComponent(typeof(SpawnerUnit))]
 public class Base : MonoBehaviour
 {
+    [SerializeField] private List<Resource> _resources = new List<Resource>();
     [SerializeField] private List<Unit> _units = new List<Unit>();
     [SerializeField] private FinderResource _nearestResourceScanner;
+    [SerializeField] private BaseResources _baseResources;
     [SerializeField] private float _scanInterval = 0.5f;
 
     private Flag _flag;
     private CounterResources _counterResources;
     private SpawnerUnit _spawnerUnit;
+    private Scanner _scanner;
 
     public int NumberUnits => _units.Count;
 
     public bool IsSetFlag { get; private set; } 
-
-    public int Id { get; private set; }
 
     public event Action<Vector3, Unit> SpawnNewBase;
 
@@ -27,6 +30,7 @@ public class Base : MonoBehaviour
     {
         _counterResources = GetComponent<CounterResources>();
         _spawnerUnit = GetComponent<SpawnerUnit>();
+        _scanner = GetComponent<Scanner>();
 
         IsSetFlag = false;
     }
@@ -35,6 +39,8 @@ public class Base : MonoBehaviour
     {
         _counterResources.SpawnUnitAllowed += SpawnUnit;
         _counterResources.CreatedNewBase += CreateNewBase;
+        _scanner.WorkedScanner += UpdateResourcesBase;
+        _baseResources.SyncAllResources += UpdateResourcesBase;
     }
 
     private void Start()
@@ -46,24 +52,23 @@ public class Base : MonoBehaviour
     {
         _counterResources.SpawnUnitAllowed -= SpawnUnit;
         _counterResources.CreatedNewBase -= CreateNewBase;
+        _scanner.WorkedScanner -= UpdateResourcesBase;
+        _baseResources.SyncAllResources -= UpdateResourcesBase;
     }
 
     private void OnDestroy()
     {
         foreach (Unit unit in _units)
         {
-            if (unit != null && unit.TryGetComponent(out DetectorResource detectorResource))
-            {
-                detectorResource.ChangeTarget -= OnUnitTargetChange;
-            }
+            unit.DeletedResource -= DeleteResource;
         }
 
         _units.Clear();
     }
 
-    public void AssignId(int id) 
+    public void Initialize(BaseResources baseResources)
     {
-        Id = id;
+        _baseResources = baseResources;
     }
 
     public void AssignFlag(Flag flag)
@@ -79,27 +84,46 @@ public class Base : MonoBehaviour
 
     public void SetUnit(Unit unit) 
     {
-        if (unit == null) return;
+        if (unit == null) 
+            return;
 
-        if (unit.TryGetComponent(out DetectorResource detectorResource))
-        {
-            detectorResource.ChangeTarget += OnUnitTargetChange;
-        }
-
-        unit.AssignId(Id);
+        unit.DeletedResource += DeleteResource;
+        unit.AssignBasePosition(transform.position);
         _units.Add(unit);
+    }
+
+    public void BorrowResource(Resource resource)
+    {
+        if (resource == null)
+            return;
+
+        _resources.Remove(resource);
+        _baseResources.BorrowResource(resource);
+    }
+ 
+    public IReadOnlyList<Resource> GetResources()
+    {
+        return _resources.AsReadOnly();
+    }
+
+    private void DeleteResource(Resource resource)
+    {
+        _baseResources.DeleteResource(resource);
+        _counterResources.AddScore(resource.Value);
     }
 
     private void CreateNewBase() 
     {
-        if (_units.Count <= 0) return;
+        if (_units.Count <= 0) 
+            return;
 
         Unit unit = _units[0];
         _units.RemoveAt(0);
 
-        _flag?.ReturnToPool();
+        _flag?.Return();
         UpdateStatusFlag(false);
 
+        unit.DeletedResource -= DeleteResource;
         SpawnNewBase?.Invoke(_flag.transform.position, unit);
         _counterResources.SubtracteCostSpawnBase();
     }
@@ -139,21 +163,26 @@ public class Base : MonoBehaviour
         }
     }
 
-    private void OnUnitTargetChange(Unit unit)
-    {
-        ChangeUnitTarget(transform, unit);
-    }
-
     private void ChangeUnitTarget(Transform target, Unit unit)
     {
-        unit.Active(target);
+        unit.Active(target.position);
+    }
+
+    private void UpdateResourcesBase()
+    {
+        UpdateResourcesBase(_resources);
+    }
+
+    private void UpdateResourcesBase(List<Resource> newResources)
+    {
+        _resources = newResources.Where(resource => _baseResources.GetBusyResources().Contains(resource) == false).ToList();
     }
 
     private IEnumerator SendingBotsRoutine()
     {
         WaitForSeconds waitForSeconds = new WaitForSeconds(_scanInterval);
 
-        while (true)
+        while (enabled)
         {
             yield return waitForSeconds;
 

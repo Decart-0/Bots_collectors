@@ -1,18 +1,19 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+[RequireComponent(typeof(Base))]
 public class FinderResource : MonoBehaviour
 {
-    private ListResources _listResources;
+    private Base _base;
 
     private void Awake()
     {
-        _listResources = FindAnyObjectByType<ListResources>();
+        _base = GetComponent<Base>();
     }
 
     public Resource FindNearestResource()
     {
-        IReadOnlyList<Resource> resources = _listResources.GetResources();
+        IReadOnlyList<Resource> resources = _base.GetResources();
         Resource closestResource = null;
         float minSqrDistance = float.MaxValue;
 
@@ -27,7 +28,7 @@ public class FinderResource : MonoBehaviour
             }
         }
 
-        _listResources.BorrowResource(closestResource);
+        _base.BorrowResource(closestResource);
 
         return closestResource;
     }

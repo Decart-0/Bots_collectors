@@ -1,67 +1,111 @@
+using System;
+using System.Collections;
 using UnityEngine;
 
 [RequireComponent(typeof(UnitMover))]
-[RequireComponent(typeof(DetectorResource))]
-[RequireComponent(typeof(ResourcePickerUp))]
 public class Unit : MonoBehaviour
 {
-    [field:SerializeField] public bool IsActive { get; private set; }
+    [SerializeField] private Transform _resourcePosition;
 
     private UnitMover _unitMover;
-    private DetectorResource _detectorResource;
-    private ResourcePickerUp _resourcePickerUp;
+    private Coroutine _movementCoroutine;
+    private Resource _resource;
+    private Vector3 _basePosition;
 
-    public int IdBase { get; private set; }
+    public bool IsActive { get; private set; }
 
-    public Resource Resource { get; private set; }
+    public Vector3 TargetPoint { get; private set; }
+
+    public event Action<Resource> DeletedResource;
 
     private void Awake()
     {
         _unitMover = GetComponent<UnitMover>();
-        _detectorResource = GetComponent<DetectorResource>();
-        _resourcePickerUp = GetComponent<ResourcePickerUp>();
-
         ToggleActive(false);
     }
 
-    private void OnEnable()
+    private void OnDestroy()
     {
-        _detectorResource.ResourceFound += PickUpResource;
+        StopMovement();
     }
 
-    private void OnDisable()
+    public void AssignBasePosition(Vector3 position)
     {
-        _detectorResource.ResourceFound -= PickUpResource;
-    }
-
-    public void AssignId(int id)
-    {
-        IdBase = id;
+        _basePosition = position;
     }
 
     public void AssignResource(Resource resource)
     {
-        Resource = resource;
+        _resource = resource;
     }
 
-    public void Active(Transform resource) 
-    {   
+    public void Active(Vector3 resourcePosition) 
+    {
+        if (IsActive) 
+            return;
+
         ToggleActive(true);
-        StartMovement(resource);
+        TargetPoint = resourcePosition;
+        StartMovement();
     }
 
-    public void ToggleActive(bool status)
+    private void ToggleActive(bool status)
     {
         IsActive = status;
     }
-
-    private void StartMovement(Transform transform)
+  
+    private void StartMovement()
     {
-        _unitMover.StartMovement(transform);
+        StopMovement();
+        _movementCoroutine = StartCoroutine(MovementCoroutine());
     }
 
-    private void PickUpResource(Resource resource) 
+    private void StopMovement()
     {
-        _resourcePickerUp.PickUp(resource);
+        if (_movementCoroutine != null)
+        {
+            StopCoroutine(_movementCoroutine);
+            _movementCoroutine = null;
+        }
+    }
+
+    private IEnumerator PickUpResource()
+    {
+        if (_resource != null)
+        {
+            _resource.transform.SetParent(transform);
+            _resource.transform.position = _resourcePosition.position;
+            TargetPoint = _basePosition;
+        }
+
+        yield return null;
+    }
+
+    private IEnumerator SubmitResource()
+    {
+        if (_resource != null)
+        {
+            DeletedResource?.Invoke(_resource);
+            _resource = null;
+        }
+
+        ToggleActive(false);
+
+        yield return null;
+    }
+
+    private IEnumerator MovementCoroutine()
+    {
+        while (IsActive)
+        {
+            yield return _unitMover.SmoothLookAt();
+            yield return _unitMover.MoveToPosition();
+            yield return PickUpResource();
+            yield return _unitMover.SmoothLookAt();
+            yield return _unitMover.MoveToPosition();
+            yield return SubmitResource();
+
+            yield return null;
+        }
     }
 }

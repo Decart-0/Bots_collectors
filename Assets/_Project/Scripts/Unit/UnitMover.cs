@@ -8,45 +8,13 @@ public class UnitMover : MonoBehaviour
     [SerializeField] private float _speed = 5f;
 
     private Unit _unit;
-    private Coroutine _movementCoroutine;
-    private Transform _targetPoint;
 
     private void Awake()
     {
         _unit = GetComponent<Unit>();
     }
 
-    private void OnDestroy()
-    {
-        StopMovement();
-    }
-
-    public void StartMovement(Transform transform)
-    {
-        _targetPoint = transform;
-        StopMovement();
-
-        if (_targetPoint != null && _movementCoroutine == null)
-        {
-            _movementCoroutine = StartCoroutine(MovementCoroutine());
-        }
-    }
-
-    private void StopMovement()
-    {
-        if (_movementCoroutine != null)
-        {
-            StopCoroutine(_movementCoroutine);
-            _movementCoroutine = null;
-        }
-    }
-
-    private Vector3 GetTargetPosition()
-    { 
-        return new Vector3(_targetPoint.position.x, transform.position.y, _targetPoint.position.z);
-    }
-
-    private IEnumerator SmoothLookAt()
+    public IEnumerator SmoothLookAt()
     {
         Vector3 targetPosition = GetTargetPosition();
 
@@ -83,32 +51,26 @@ public class UnitMover : MonoBehaviour
         }
     }
 
-    private IEnumerator MoveToPosition()
+    public IEnumerator MoveToPosition()
     {
         Vector3 targetPosition = GetTargetPosition();
-        float distance = Vector3.Distance(transform.position, targetPosition);
+        float distance = (transform.position - targetPosition).sqrMagnitude;
 
-        while (distance > 0 && _unit.IsActive)
+        while (distance > 0)
         {
             transform.position = Vector3.MoveTowards(
                 transform.position,
                 targetPosition,
                 _speed * Time.deltaTime);
 
-            distance = Vector3.Distance(transform.position, targetPosition);
+            distance = (transform.position - targetPosition).sqrMagnitude;
 
             yield return null;
         }
     }
 
-    private IEnumerator MovementCoroutine()
+    private Vector3 GetTargetPosition()
     {
-        while(_unit.IsActive) 
-        {
-            yield return SmoothLookAt();
-            yield return MoveToPosition();
-
-            yield return null;
-        }
+        return new Vector3(_unit.TargetPoint.x, transform.position.y, _unit.TargetPoint.z);
     }
 }
