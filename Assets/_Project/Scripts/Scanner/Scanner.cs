@@ -50,12 +50,15 @@ public class Scanner : MonoBehaviour
             }
         }
 
-        WorkedScanner?.Invoke(resources);
+        if (resources.Count > 0)
+        {
+            WorkedScanner?.Invoke(resources);
+        }
     }
 
     private IEnumerator RecurringScan()
     {      
-        while (true)
+        while (enabled)
         {
             Scan();
             yield return _waitForSeconds;

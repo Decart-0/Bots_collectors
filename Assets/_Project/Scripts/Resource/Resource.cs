@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 [RequireComponent(typeof(Renderer))]
@@ -9,9 +10,16 @@ public class Resource : MonoBehaviour
 
     public int Value { get; private set; } = 1;
 
+    public event Action<Resource> ResourceReturn;
+
     private void Awake()
     {
         _renderer = GetComponent<Renderer>();
         _renderer.material.color = _color;
+    }
+
+    public void Return() 
+    {
+        ResourceReturn?.Invoke(this);
     }
 }

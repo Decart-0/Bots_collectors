@@ -47,13 +47,11 @@ public class SpawnerResources : MonoBehaviour
     private void OnEnable()
     {
         _baseResources.SyncAllResources += Active;
-        _baseResources.CollectedResources += ReleaseResource;
     }
 
     private void OnDisable()
     {
         _baseResources.SyncAllResources -= Active;
-        _baseResources.CollectedResources -= ReleaseResource;
     }
 
     private void OnDestroy()
@@ -97,6 +95,7 @@ public class SpawnerResources : MonoBehaviour
 
         if (IsEmptyPosition(randomPosition))
         {
+            resource.ResourceReturn += ReleaseResource;
             resource.transform.position = randomPosition;
             resource.transform.SetParent(_parentObject);
             resource.gameObject.SetActive(true);
@@ -110,6 +109,7 @@ public class SpawnerResources : MonoBehaviour
 
     private void OnReleaseResource(Resource resource)
     {
+        resource.ResourceReturn -= ReleaseResource;
         resource.gameObject.SetActive(false);
     }
 

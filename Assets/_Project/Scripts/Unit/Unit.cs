@@ -9,7 +9,7 @@ public class Unit : MonoBehaviour
 
     private UnitMover _unitMover;
     private Coroutine _movementCoroutine;
-    private Resource _resource;
+    [SerializeField] private Resource _resource;
     private Vector3 _basePosition;
 
     public bool IsActive { get; private set; }
@@ -77,7 +77,7 @@ public class Unit : MonoBehaviour
             _resource.transform.position = _resourcePosition.position;
             TargetPoint = _basePosition;
         }
-
+        
         yield return null;
     }
 

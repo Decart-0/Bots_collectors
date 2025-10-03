@@ -4,6 +4,8 @@ using UnityEngine;
 [RequireComponent(typeof(Unit))]
 public class UnitMover : MonoBehaviour
 {
+    private const float StoppingDistance = 0.1f;
+
     [SerializeField] private float _rotationSpeed = 5f;
     [SerializeField] private float _speed = 5f;
 
@@ -56,7 +58,7 @@ public class UnitMover : MonoBehaviour
         Vector3 targetPosition = GetTargetPosition();
         float distance = (transform.position - targetPosition).sqrMagnitude;
 
-        while (distance > 0)
+        while (distance > StoppingDistance)
         {
             transform.position = Vector3.MoveTowards(
                 transform.position,

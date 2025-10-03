@@ -10,7 +10,6 @@ public class BaseResources : MonoBehaviour
     public float NumberResources => _resources.Count + _resourcesBusy.Count;
 
     public event Action SyncAllResources;
-    public event Action<Resource> CollectedResources;
 
     public IReadOnlyList<Resource> GetBusyResources()
     {
@@ -33,6 +32,6 @@ public class BaseResources : MonoBehaviour
     {
         _resourcesBusy.Remove(resource);
         SyncAllResources?.Invoke();
-        CollectedResources?.Invoke(resource);
+        resource.Return();
     }
 }
